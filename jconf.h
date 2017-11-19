@@ -14,8 +14,7 @@ public:
 	bool parse_config(const char* sFilename);
 
 	struct thd_cfg {
-		bool bDoubleMode;
-		bool bNoPrefetch;
+		int iMultiway;
 		long long iCpuAff;
 	};
 
