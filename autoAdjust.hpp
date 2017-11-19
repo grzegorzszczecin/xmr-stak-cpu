@@ -66,8 +66,7 @@ public:
 
 			double_mode = L3KB_size / 2048 > (int32_t)(corecnt-i);
 
-			snprintf(strbuf, sizeof(strbuf), "   { \"low_power_mode\" : %s, \"no_prefetch\" : true, \"affine_to_cpu\" : %u },\n",
-				double_mode ? "true" : "false", aff_id);
+			snprintf(strbuf, sizeof(strbuf), "   { \"low_power_mode\" : %u, \"affine_to_cpu\" : %u },\n", double_mode ? 2 : 1, aff_id);
 			printer::inst()->print_str(strbuf);
 
 			if(!linux_layout || old_amd)

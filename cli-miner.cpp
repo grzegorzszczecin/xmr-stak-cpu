@@ -198,7 +198,7 @@ void do_benchmark()
 	using namespace std::chrono;
 	std::vector<minethd*>* pvThreads;
 
-	printer::inst()->print_msg(L0, "Running a 60 second benchmark...");
+	printer::inst()->print_msg(L0, "Running a 10 second benchmark...");
 
 	uint8_t work[76] = {0};
 	minethd::miner_work oWork = minethd::miner_work("", work, sizeof(work), 0, 0, false, 0);
@@ -206,7 +206,7 @@ void do_benchmark()
 
 	uint64_t iStartStamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
 
-	std::this_thread::sleep_for(std::chrono::seconds(60));
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 
 	oWork = minethd::miner_work();
 	minethd::switch_work(oWork);
