@@ -115,6 +115,7 @@ private:
 
 	void work_main();
 	void double_work_main();
+	void triple_work_main();
 	void quad_work_main();
 	void pent_work_main();
 	void hex_work_main();

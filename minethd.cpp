@@ -171,6 +171,9 @@ minethd::minethd(miner_work& pWork, size_t iNo, int iMultiway, int64_t affinity)
 	case 4:
 		oWorkThd = std::thread(&minethd::quad_work_main, this);
 		break;
+	case 3:
+		oWorkThd = std::thread(&minethd::triple_work_main, this);
+		break;
 	case 2:
 		oWorkThd = std::thread(&minethd::double_work_main, this);
 		break;
@@ -280,6 +283,11 @@ bool minethd::self_test()
 	cryptonight_double_hash("The quick brown fox jumps over the lazy dogThe quick brown fox jumps over the lazy log", 43, out, ctx);
 	bResult &= memcmp(out, "\x3e\xbb\x7f\x9f\x7d\x27\x3d\x7c\x31\x8d\x86\x94\x77\x55\x0c\xc8\x00\xcf\xb1\x1b\x0c\xad\xb7\xff\xbd\xf6\xf8\x9f\x3a\x47\x1c\x59"
 		                   "\xb4\x77\xd5\x02\xe4\xd8\x48\x7f\x42\xdf\xe3\x8e\xed\x73\x81\x7a\xda\x91\xb7\xe2\x63\xd2\x91\x71\xb6\x5c\x44\x3a\x01\x2a\x41\x22", 64) == 0;
+
+	cryptonight_triple_hash("This is a testThis is a testThis is a test", 14, out, ctx);
+	bResult &= memcmp(out, "\xa0\x84\xf0\x1d\x14\x37\xa0\x9c\x69\x85\x40\x1b\x60\xd4\x35\x54\xae\x10\x58\x02\xc5\xf5\xd8\xa9\xb3\x25\x36\x49\xc0\xbe\x66\x05"
+		                   "\xa0\x84\xf0\x1d\x14\x37\xa0\x9c\x69\x85\x40\x1b\x60\xd4\x35\x54\xae\x10\x58\x02\xc5\xf5\xd8\xa9\xb3\x25\x36\x49\xc0\xbe\x66\x05"
+		                   "\xa0\x84\xf0\x1d\x14\x37\xa0\x9c\x69\x85\x40\x1b\x60\xd4\x35\x54\xae\x10\x58\x02\xc5\xf5\xd8\xa9\xb3\x25\x36\x49\xc0\xbe\x66\x05", 96) == 0;
 
 	cryptonight_quad_hash("This is a testThis is a testThis is a testThis is a test", 14, out, ctx);
 	bResult &= memcmp(out, "\xa0\x84\xf0\x1d\x14\x37\xa0\x9c\x69\x85\x40\x1b\x60\xd4\x35\x54\xae\x10\x58\x02\xc5\xf5\xd8\xa9\xb3\x25\x36\x49\xc0\xbe\x66\x05"
@@ -444,6 +452,11 @@ void minethd::work_main()
 void minethd::double_work_main()
 {
 	multiway_work_main(2, cryptonight_double_hash);
+}
+
+void minethd::triple_work_main()
+{
+	multiway_work_main(3, cryptonight_triple_hash);
 }
 
 void minethd::quad_work_main()

@@ -332,6 +332,81 @@ void cryptonight_double_hash(const void* input, size_t len, void* output, crypto
 	}
 }
 
+// This lovelier creation will do 3 cn hashes at a time.
+template<size_t ITERATIONS=0x80000, size_t MEM=MEMORY>
+void cryptonight_triple_hash(const void* input, size_t len, void* output, cryptonight_ctx** ctx)
+{
+	for (size_t i = 0; i < 3; i++)
+	{
+		keccak((const uint8_t *)input + len * i, len, ctx[i]->hash_state, 200);
+		cn_explode_scratchpad<MEM>((__m128i*)ctx[i]->hash_state, (__m128i*)ctx[i]->long_state);
+	}
+
+	uint8_t* l0 = ctx[0]->long_state;
+	uint64_t* h0 = (uint64_t*)ctx[0]->hash_state;
+	uint8_t* l1 = ctx[1]->long_state;
+	uint64_t* h1 = (uint64_t*)ctx[1]->hash_state;
+	uint8_t* l2 = ctx[2]->long_state;
+	uint64_t* h2 = (uint64_t*)ctx[2]->hash_state;
+
+	__m128i ax0 = _mm_set_epi64x(h0[1] ^ h0[5], h0[0] ^ h0[4]);
+	__m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
+	__m128i ax1 = _mm_set_epi64x(h1[1] ^ h1[5], h1[0] ^ h1[4]);
+	__m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
+	__m128i ax2 = _mm_set_epi64x(h2[1] ^ h2[5], h2[0] ^ h2[4]);
+	__m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
+	__m128i cx0 = _mm_set_epi64x(0, 0);
+	__m128i cx1 = _mm_set_epi64x(0, 0);
+	__m128i cx2 = _mm_set_epi64x(0, 0);
+
+	for (size_t i = 0; i < ITERATIONS/2; i++)
+	{
+		uint64_t idx0, idx1, idx2, hi, lo;
+		__m128i *ptr0, *ptr1, *ptr2;
+
+		// EVEN ROUND
+		CN_STEP1(ax0, bx0, cx0, l0, ptr0, idx0);
+		CN_STEP1(ax1, bx1, cx1, l1, ptr1, idx1);
+		CN_STEP1(ax2, bx2, cx2, l2, ptr2, idx2);
+
+		CN_STEP2(ax0, bx0, cx0, l0, ptr0, idx0);
+		CN_STEP2(ax1, bx1, cx1, l1, ptr1, idx1);
+		CN_STEP2(ax2, bx2, cx2, l2, ptr2, idx2);
+
+		CN_STEP3(ax0, bx0, cx0, l0, ptr0, idx0);
+		CN_STEP3(ax1, bx1, cx1, l1, ptr1, idx1);
+		CN_STEP3(ax2, bx2, cx2, l2, ptr2, idx2);
+
+		CN_STEP4(ax0, bx0, cx0, l0, ptr0, idx0);
+		CN_STEP4(ax1, bx1, cx1, l1, ptr1, idx1);
+		CN_STEP4(ax2, bx2, cx2, l2, ptr2, idx2);
+
+		// ODD ROUND
+		CN_STEP1(ax0, cx0, bx0, l0, ptr0, idx0);
+		CN_STEP1(ax1, cx1, bx1, l1, ptr1, idx1);
+		CN_STEP1(ax2, cx2, bx2, l2, ptr2, idx2);
+
+		CN_STEP2(ax0, cx0, bx0, l0, ptr0, idx0);
+		CN_STEP2(ax1, cx1, bx1, l1, ptr1, idx1);
+		CN_STEP2(ax2, cx2, bx2, l2, ptr2, idx2);
+
+		CN_STEP3(ax0, cx0, bx0, l0, ptr0, idx0);
+		CN_STEP3(ax1, cx1, bx1, l1, ptr1, idx1);
+		CN_STEP3(ax2, cx2, bx2, l2, ptr2, idx2);
+
+		CN_STEP4(ax0, cx0, bx0, l0, ptr0, idx0);
+		CN_STEP4(ax1, cx1, bx1, l1, ptr1, idx1);
+		CN_STEP4(ax2, cx2, bx2, l2, ptr2, idx2);
+	}
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		cn_implode_scratchpad<MEM>((__m128i*)ctx[i]->long_state, (__m128i*)ctx[i]->hash_state);
+		keccakf((uint64_t*)ctx[i]->hash_state, 24);
+		extra_hashes[ctx[i]->hash_state[0] & 3](ctx[i]->hash_state, 200, (char*)output + 32 * i);
+	}
+}
+
 // This lovelier creation will do 4 cn hashes at a time.
 template<size_t ITERATIONS=0x80000, size_t MEM=MEMORY>
 void cryptonight_quad_hash(const void* input, size_t len, void* output, cryptonight_ctx** ctx)
